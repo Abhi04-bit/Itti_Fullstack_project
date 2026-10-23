@@ -1,0 +1,237 @@
+// Prisma Schema for The Itti Foundation (Itti's Skill School Foundation)
+// Database: PostgreSQL with UUIDs, strict indices, relational constraints, and audit logging
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  CONTRIBUTOR
+}
+
+enum CommitmentPillar {
+  NEURODIVERGENCE
+  CANCER_CARE
+  CONSERVATION
+}
+
+enum ProjectStatus {
+  COMPLETED
+  ONGOING
+  UPCOMING
+}
+
+enum EventFormat {
+  ONLINE_ZOOM
+  OFFLINE_MEET
+}
+
+enum SubmissionStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  ARCHIVED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  name         String
+  role         Role       @default(EDITOR)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Commitment {
+  id             String           @id @default(uuid())
+  slug           String           @unique
+  pillar         CommitmentPillar @unique
+  title          String
+  tagline        String
+  quote          String
+  description    String           @db.Text
+  whatsappUrl    String
+  plateTitle     String
+  plateArtist    String
+  plateYear      String
+  plateDesc      String           @db.Text
+  plateLicense   String
+  sortOrder      Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  projects       Project[]
+
+  @@map("commitments")
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  slug         String        @unique
+  commitmentId String?
+  commitment   Commitment?   @relation(fields: [commitmentId], references: [id], onDelete: SetNull)
+  category     String
+  title        String
+  dateStr      String
+  location     String
+  status       ProjectStatus @default(COMPLETED)
+  summary      String        @db.Text
+  content      String?       @db.Text
+  isFeatured   Boolean       @default(false)
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@map("projects")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  dayNumber   String
+  monthYear   String
+  dateStr     String
+  time        String
+  title       String
+  category    String
+  format      EventFormat @default(OFFLINE_MEET)
+  location    String
+  summary     String      @db.Text
+  isPublished Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  rsvps       EventRsvp[]
+
+  @@map("events")
+}
+
+model EventRsvp {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  phone     String?
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@map("event_rsvps")
+}
+
+model Product {
+  id            String           @id @default(uuid())
+  code          String           @unique
+  name          String
+  category      CommitmentPillar
+  price         Decimal          @db.Decimal(10, 2)
+  craftInfo     String
+  description   String           @db.Text
+  inquiryMailto String
+  isAvailable   Boolean          @default(true)
+  sortOrder     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@map("products")
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  title       String
+  category    String
+  dateStr     String
+  summary     String   @db.Text
+  content     String?  @db.Text
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("articles")
+}
+
+model VolunteerApplication {
+  id           String           @id @default(uuid())
+  name         String
+  email        String
+  phone        String?
+  pillar       String
+  availability String
+  skills       String           @db.Text
+  status       SubmissionStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@map("volunteer_applications")
+}
+
+model MembershipRegistration {
+  id              String           @id @default(uuid())
+  name            String
+  email           String           @unique
+  phone           String?
+  dob             DateTime
+  isUnder18       Boolean          @default(false)
+  guardianName    String?
+  guardianContact String?
+  consentEmail    Boolean          @default(true)
+  consentWhatsapp Boolean          @default(false)
+  consentSms      Boolean          @default(false)
+  status          SubmissionStatus @default(PENDING)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("membership_registrations")
+}
+
+model ContactSubmission {
+  id        String           @id @default(uuid())
+  name      String
+  email     String
+  message   String           @db.Text
+  status    SubmissionStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("contact_submissions")
+}
+
+model NewsletterSubscription {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("newsletter_subscriptions")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  resource   String
+  resourceId String?
+  details    String?  @db.Text
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([action])
+  @@index([resource])
+  @@map("audit_logs")
+}
