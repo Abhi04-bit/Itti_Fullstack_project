@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #F8F6F0;
+  --bg-primary: #edebe4;
   --brand-primary: #173F35;
   --surface-secondary: #E5EBDD;
-  --accent: #D97962;
+  --accent: #db7860;
   --text-primary: #242722;
   --text-secondary: #5B6457;
 }
