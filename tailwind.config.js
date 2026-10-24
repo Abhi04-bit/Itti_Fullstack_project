@@ -35,7 +35,7 @@ module.exports = {
           50: "#FDF5F3",
         },
         charcoal: {
-          DEFAULT: "#242722",
+          DEFAULT: "#252923",
           light: "#3B4038",
           muted: "#5B6457",
         },

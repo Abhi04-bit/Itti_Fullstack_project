@@ -54,7 +54,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Our Story */}
+          {/* Column 2: Our Story! */}
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-widest text-sage">The Foundation</p>
             <ul className="space-y-2 text-sm text-ivory/80">
